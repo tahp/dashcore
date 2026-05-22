@@ -1,11 +1,19 @@
-function Dock() {
+function Dock({ setCurrentScreen }) {
   return (
     <nav className="dock">
-      <button>Home</button>
-      <button>Music</button>
-      <button>Nav</button>
-      <button>Car</button>
-      <button>Settings</button>
+
+      <button onClick={() => setCurrentScreen('HOME')}>
+        Home
+      </button>
+
+      <button onClick={() => setCurrentScreen('MEDIA')}>
+        Music
+      </button>
+
+      <button onClick={() => setCurrentScreen('SETTINGS')}>
+        Settings
+      </button>
+
     </nav>
   )
 }

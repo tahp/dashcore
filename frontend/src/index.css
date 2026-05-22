@@ -1,3 +1,4 @@
+
 * {
   margin: 0;
   padding: 0;
@@ -8,4 +9,53 @@ body {
   background: #111;
   color: white;
   font-family: sans-serif;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: 48px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 16px;
+
+  background: #1b1b1b;
+}
+
+.content {
+  flex: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dock {
+  height: 72px;
+
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+
+  background: #1b1b1b;
+}
+
+button {
+  background: #2a2a2a;
+  border: none;
+  color: white;
+
+  padding: 12px 18px;
+  border-radius: 12px;
+
+  font-size: 16px;
 }

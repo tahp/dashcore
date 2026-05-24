@@ -1,29 +1,61 @@
+import { 
+  Navigation, 
+  Car, 
+  Bluetooth, 
+  Camera, 
+  Play, 
+  SkipBack, 
+  SkipForward,
+  MoreHorizontal
+} from "lucide-react"
+
 function Home() {
   return (
     <div className="home-screen">
 
       <section className="hero-card">
-        NOW PLAYING
+        <div className="media-content">
+          <div className="album-art">
+            {/* Ambient glow container */}
+            <div className="ambient-glow"></div>
+          </div>
+          <div className="media-info">
+            <span className="now-playing">NOW PLAYING</span>
+            <h2>After Hours</h2>
+            <p>The Weeknd</p>
+          </div>
+        </div>
+
+        <div className="media-controls">
+          <button className="btn-secondary"><SkipBack size={24} fill="currentColor" /></button>
+          <button className="btn-primary"><Play size={32} fill="currentColor" /></button>
+          <button className="btn-secondary"><SkipForward size={24} fill="currentColor" /></button>
+        </div>
       </section>
 
-      <section className="quick-grid">
-
-        <div className="quick-card">
-          Navigation
+      <section className="quick-action nav-card">
+        <div className="card-content">
+          <Navigation size={32} className="icon-accent" />
+          <div className="card-text">
+            <span className="label">Navigation</span>
+            <span className="sub-label">Route to Home</span>
+          </div>
         </div>
+      </section>
 
-        <div className="quick-card">
-          Vehicle
-        </div>
+      <section className="quick-action vehicle-card">
+        <Car size={28} />
+        <span>Vehicle</span>
+      </section>
 
-        <div className="quick-card">
-          Bluetooth
-        </div>
+      <section className="quick-action bt-card">
+        <Bluetooth size={28} />
+        <span>Bluetooth</span>
+      </section>
 
-        <div className="quick-card">
-          Cameras
-        </div>
-
+      <section className="quick-action camera-card">
+        <Camera size={28} />
+        <span>Cameras</span>
       </section>
 
     </div>

@@ -1,19 +1,22 @@
+import { LayoutGrid, Music, Settings } from "lucide-react"
+
 function Dock({ setCurrentScreen }) {
   return (
     <nav className="dock">
-
-      <button onClick={() => setCurrentScreen('HOME')}>
-        Home
+      <button className="dock-item" onClick={() => setCurrentScreen('HOME')}>
+        <LayoutGrid size={24} />
+        <span>Home</span>
       </button>
 
-      <button onClick={() => setCurrentScreen('MEDIA')}>
-        Music
+      <button className="dock-item" onClick={() => setCurrentScreen('MEDIA')}>
+        <Music size={24} />
+        <span>Media</span>
       </button>
 
-      <button onClick={() => setCurrentScreen('SETTINGS')}>
-        Settings
+      <button className="dock-item" onClick={() => setCurrentScreen('SETTINGS')}>
+        <Settings size={24} />
+        <span>Settings</span>
       </button>
-
     </nav>
   )
 }

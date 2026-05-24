@@ -1,10 +1,19 @@
+import { Bluetooth, Clock, Zap } from "lucide-react"
 
 function StatusBar() {
   return (
     <header className="topbar">
-      <div>BT</div>
-      <div>3:32 PM</div>
-      <div>13.8V</div>
+      <div className="status-left">
+        <Bluetooth size={16} className="icon-dim" />
+      </div>
+      <div className="status-center">
+        <Clock size={16} className="icon-dim" />
+        <span>3:32 PM</span>
+      </div>
+      <div className="status-right">
+        <Zap size={16} className="icon-accent" />
+        <span>13.8V</span>
+      </div>
     </header>
   )
 }

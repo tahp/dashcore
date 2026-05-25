@@ -4,33 +4,39 @@ import {
   Bluetooth, 
   Camera, 
   Play, 
+  Pause,
   SkipBack, 
   SkipForward,
 } from "lucide-react"
 import { useAppState } from "../context/StateContext"
+import { useMedia } from "../context/MediaContext"
 
 function Home() {
-  const { setPriorityState } = useAppState()
+  const { setPriorityState, setMainState } = useAppState()
+  const { currentTrack, isPlaying, handleTogglePlay, handleNext, handlePrev } = useMedia()
 
   return (
     <div className="home-screen">
 
-      <section className="hero-card">
+      <section className="hero-card" onClick={() => setMainState('MEDIA')} style={{ cursor: 'pointer' }}>
         <div className="media-content">
           <div className="album-art">
-            <div className="ambient-glow"></div>
+            <img src={currentTrack.cover} alt={currentTrack.title} style={{ width: '100%', height: '100%', borderRadius: '20px', objectFit: 'cover' }} />
+            <div className="ambient-glow" style={{ backgroundImage: `url(${currentTrack.cover})`, backgroundSize: 'cover' }}></div>
           </div>
           <div className="media-info">
-            <span className="now-playing">NOW PLAYING</span>
-            <h2>After Hours</h2>
-            <p>The Weeknd</p>
+            <span className="now-playing">{isPlaying ? 'NOW PLAYING' : 'PAUSED'}</span>
+            <h2>{currentTrack.title}</h2>
+            <p>{currentTrack.artist}</p>
           </div>
         </div>
 
-        <div className="media-controls">
-          <button className="btn-secondary"><SkipBack size={24} fill="currentColor" /></button>
-          <button className="btn-primary"><Play size={32} fill="currentColor" /></button>
-          <button className="btn-secondary"><SkipForward size={24} fill="currentColor" /></button>
+        <div className="media-controls" onClick={(e) => e.stopPropagation()}>
+          <button className="btn-secondary" onClick={handlePrev}><SkipBack size={24} fill="currentColor" /></button>
+          <button className="btn-primary" onClick={handleTogglePlay}>
+            {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" />}
+          </button>
+          <button className="btn-secondary" onClick={handleNext}><SkipForward size={24} fill="currentColor" /></button>
         </div>
       </section>
 

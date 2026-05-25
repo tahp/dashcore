@@ -6,6 +6,7 @@ import { StateProvider } from './context/StateContext'
 import { VehicleProvider } from './context/VehicleContext'
 import { MediaProvider } from './context/MediaContext'
 import { NavigationProvider } from './context/NavigationContext'
+import { SettingsProvider } from './context/SettingsContext'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -13,7 +14,9 @@ createRoot(document.getElementById('root')).render(
       <VehicleProvider>
         <MediaProvider>
           <NavigationProvider>
-            <App />
+            <SettingsProvider>
+              <App />
+            </SettingsProvider>
           </NavigationProvider>
         </MediaProvider>
       </VehicleProvider>

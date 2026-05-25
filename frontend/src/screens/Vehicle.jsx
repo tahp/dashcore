@@ -1,9 +1,14 @@
 import React from 'react';
 import { useVehicle } from '../context/VehicleContext';
+import { useSettings } from '../context/SettingsContext';
 import { Activity, Thermometer, Zap, Gauge } from 'lucide-react';
 
 function Vehicle() {
   const { data, triggerScenario } = useVehicle();
+  const { settings } = useSettings();
+
+  const isMetric = settings.units === 'METRIC';
+  const formatTemp = (c) => isMetric ? c : parseFloat((c * 9/5 + 32).toFixed(1));
 
   const GaugeCard = ({ icon: Icon, label, value, unit, color }) => (
     <div className="gauge-card">
@@ -31,8 +36,8 @@ function Vehicle() {
         <GaugeCard 
           icon={Thermometer} 
           label="Coolant" 
-          value={data.coolantTemp} 
-          unit="°C" 
+          value={formatTemp(data.coolantTemp)} 
+          unit={isMetric ? "°C" : "°F"} 
           color={data.coolantTemp > 105 ? "#ff4444" : "#44ff88"} 
         />
         <GaugeCard 

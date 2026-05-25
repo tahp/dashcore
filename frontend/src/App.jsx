@@ -7,6 +7,7 @@ import Dock from './components/Dock'
 import Home from './screens/Home'
 import Media from './screens/Media'
 import Settings from './screens/Settings'
+import Vehicle from './screens/Vehicle'
 
 function App() {
   const { activeDisplay, setSystemState, setPriorityState, visibleOverlays, activeOverlays } = useAppState()
@@ -54,6 +55,8 @@ function App() {
         return <Media />
       case 'SETTINGS':
         return <Settings />
+      case 'VEHICLE':
+        return <Vehicle />
       case 'HOME':
       default:
         return <Home />

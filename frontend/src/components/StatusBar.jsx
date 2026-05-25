@@ -1,8 +1,10 @@
 import { Bluetooth, Clock, Zap, Volume2 } from "lucide-react"
 import { useAppState } from "../context/StateContext"
+import { useVehicle } from "../context/VehicleContext"
 
 function StatusBar() {
   const { setOverlay } = useAppState()
+  const { data } = useVehicle()
 
   const triggerVolume = () => {
     setOverlay('VOLUME_OVERLAY', true)
@@ -28,8 +30,8 @@ function StatusBar() {
           onClick={triggerVolume}
         />
         <div className="status-right">
-          <Zap size={16} className="icon-accent" />
-          <span>13.8V</span>
+          <Zap size={16} className={`icon-accent ${data.voltage < 12 ? 'low-voltage' : ''}`} />
+          <span>{data.voltage}V</span>
         </div>
       </div>
     </header>

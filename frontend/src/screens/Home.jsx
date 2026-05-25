@@ -1,5 +1,5 @@
 import { 
-  Navigation, 
+  Navigation as NavigationIcon, 
   Car, 
   Bluetooth, 
   Camera, 
@@ -40,9 +40,9 @@ function Home() {
         </div>
       </section>
 
-      <section className="quick-action nav-card">
+      <section className="quick-action nav-card" onClick={() => setMainState('NAVIGATION')}>
         <div className="card-content">
-          <Navigation size={32} className="icon-accent" />
+          <NavigationIcon size={32} className="icon-accent" />
           <div className="card-text">
             <span className="label">Navigation</span>
             <span className="sub-label">Route to Home</span>

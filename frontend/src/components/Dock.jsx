@@ -1,4 +1,4 @@
-import { LayoutGrid, Music, Settings, Car } from "lucide-react"
+import { LayoutGrid, Music, Settings, Car, Map } from "lucide-react"
 import { useAppState } from "../context/StateContext"
 
 function Dock() {
@@ -12,6 +12,14 @@ function Dock() {
       >
         <LayoutGrid size={24} />
         <span>Home</span>
+      </button>
+
+      <button 
+        className={`dock-item ${mainState === 'NAVIGATION' ? 'active' : ''}`} 
+        onClick={() => setMainState('NAVIGATION')}
+      >
+        <Map size={24} />
+        <span>Nav</span>
       </button>
 
       <button 

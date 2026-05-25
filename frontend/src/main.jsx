@@ -5,13 +5,16 @@ import App from './App.jsx'
 import { StateProvider } from './context/StateContext'
 import { VehicleProvider } from './context/VehicleContext'
 import { MediaProvider } from './context/MediaContext'
+import { NavigationProvider } from './context/NavigationContext'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <StateProvider>
       <VehicleProvider>
         <MediaProvider>
-          <App />
+          <NavigationProvider>
+            <App />
+          </NavigationProvider>
         </MediaProvider>
       </VehicleProvider>
     </StateProvider>

@@ -6,17 +6,18 @@ import {
   Play, 
   SkipBack, 
   SkipForward,
-  MoreHorizontal
 } from "lucide-react"
+import { useAppState } from "../context/StateContext"
 
 function Home() {
+  const { setPriorityState } = useAppState()
+
   return (
     <div className="home-screen">
 
       <section className="hero-card">
         <div className="media-content">
           <div className="album-art">
-            {/* Ambient glow container */}
             <div className="ambient-glow"></div>
           </div>
           <div className="media-info">
@@ -43,7 +44,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="quick-action vehicle-card">
+      <section className="quick-action vehicle-card" onClick={() => setPriorityState('LOW_VOLTAGE', true)}>
         <Car size={28} />
         <span>Vehicle</span>
       </section>
@@ -53,7 +54,7 @@ function Home() {
         <span>Bluetooth</span>
       </section>
 
-      <section className="quick-action camera-card">
+      <section className="quick-action camera-card" onClick={() => setPriorityState('REVERSE_CAMERA', true)}>
         <Camera size={28} />
         <span>Cameras</span>
       </section>

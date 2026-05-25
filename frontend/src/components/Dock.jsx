@@ -1,19 +1,31 @@
 import { LayoutGrid, Music, Settings } from "lucide-react"
+import { useAppState } from "../context/StateContext"
 
-function Dock({ setCurrentScreen }) {
+function Dock() {
+  const { mainState, setMainState } = useAppState()
+
   return (
     <nav className="dock">
-      <button className="dock-item" onClick={() => setCurrentScreen('HOME')}>
+      <button 
+        className={`dock-item ${mainState === 'HOME' ? 'active' : ''}`} 
+        onClick={() => setMainState('HOME')}
+      >
         <LayoutGrid size={24} />
         <span>Home</span>
       </button>
 
-      <button className="dock-item" onClick={() => setCurrentScreen('MEDIA')}>
+      <button 
+        className={`dock-item ${mainState === 'MEDIA' ? 'active' : ''}`} 
+        onClick={() => setMainState('MEDIA')}
+      >
         <Music size={24} />
         <span>Media</span>
       </button>
 
-      <button className="dock-item" onClick={() => setCurrentScreen('SETTINGS')}>
+      <button 
+        className={`dock-item ${mainState === 'SETTINGS' ? 'active' : ''}`} 
+        onClick={() => setMainState('SETTINGS')}
+      >
         <Settings size={24} />
         <span>Settings</span>
       </button>

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect } from 'react'
+import { useAppState } from './context/StateContext'
 
 import StatusBar from './components/StatusBar'
 import Dock from './components/Dock'
@@ -8,36 +9,75 @@ import Media from './screens/Media'
 import Settings from './screens/Settings'
 
 function App() {
+  const { activeDisplay, setSystemState, setPriorityState, visibleOverlays, activeOverlays } = useAppState()
 
-  const [currentScreen, setCurrentScreen] = useState('HOME')
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSystemState('READY')
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [setSystemState])
 
-  function renderScreen() {
+  const handleDismissPriority = (state) => {
+    setPriorityState(state, false)
+  }
 
-    switch (currentScreen) {
+  function renderContent() {
+    const { type, state } = activeDisplay
 
+    if (type === 'SYSTEM') {
+      if (state === 'BOOT') {
+        return (
+          <div className="boot-screen">
+            <h1>DASHCORE</h1>
+            <div className="loader"></div>
+          </div>
+        )
+      }
+      return <div className="system-screen">{state}</div>
+    }
+
+    if (type === 'PRIORITY') {
+      return (
+        <div className="priority-screen">
+          <div className={`alert-box ${state.toLowerCase()}`} onClick={() => handleDismissPriority(state)}>
+            <h2>{state.replace('_', ' ')}</h2>
+            <p>Tap to dismiss (Dev Mode)</p>
+          </div>
+        </div>
+      )
+    }
+
+    // MAIN UI
+    switch (state) {
       case 'MEDIA':
         return <Media />
-
       case 'SETTINGS':
         return <Settings />
-
       case 'HOME':
       default:
         return <Home />
     }
   }
 
-  return (
-    <div className="app">
+  const isSystemState = activeDisplay.type === 'SYSTEM'
 
-      <StatusBar />
+  return (
+    <div className={`app ${isSystemState ? 'system-active' : ''}`}>
+      {!isSystemState && <StatusBar />}
 
       <main className="content">
-        {renderScreen()}
+        {renderContent()}
+        
+        {/* Overlays Layer */}
+        {!isSystemState && visibleOverlays.map(overlay => (
+          <div key={overlay} className={`overlay ${overlay.toLowerCase()}`}>
+             <span>{overlay.replace('_', ' ')} Active</span>
+          </div>
+        ))}
       </main>
 
-      <Dock setCurrentScreen={setCurrentScreen} />
-
+      {!isSystemState && <Dock />}
     </div>
   )
 }

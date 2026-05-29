@@ -1,0 +1,39 @@
+# DASHCORE PROJECT HANDOFF
+
+## 🚀 How to Resume
+Paste this into your next chat session:
+"I am working on the Dashcore project. Please read `docs/states.md` and the `frontend/src/context` folder to understand the current priority-based architecture and state managers. The core UI shell is complete."
+
+---
+
+## 🏗 Current Architecture
+Dashcore is a state-driven automotive interface. It uses a tiered priority system:
+1. SYSTEM (BOOT, READY, SHUTDOWN)
+2. PRIORITY (CRITICAL_WARNING, OVERHEAT, LOW_VOLTAGE, REVERSE_CAMERA) - Overrides everything.
+3. OVERLAY (VOLUME, NOTIFICATION) - Layers on top.
+4. MAIN (HOME, MEDIA, NAV, VEHICLE, SETTINGS) - Standard screens.
+
+## ✅ Completed Features
+- **State Management:** Custom `StateContext` with a deterministic priority resolver.
+- **Boot Sequence:** Animated splash screen with automatic transition to READY.
+- **Home Screen:** Dashboard with live mini-player and quick-access cards.
+- **Vehicle Telemetry:** `VehicleContext` provides real-time simulation of Voltage, RPM, and Temp. Includes a dedicated Gauges screen.
+- **Media System:** `MediaContext` manages playlists and playback. Immersive UI with ambient glow and live queue.
+- **Navigation:** Stylized map UI with search, destination history, and active routing overlays.
+- **Settings:** Persistent storage for units (Metric/Imperial), brightness, and simulation toggles.
+
+## 🛠 Tech Stack
+- **Frontend:** React 19, Vite, Lucide Icons.
+- **State:** Context API (modularized into specialized providers).
+- **Styling:** Vanilla CSS (Glassmorphism / Automotive high-contrast).
+
+## ⏭ Next Steps
+1. **Backend Initialization:** Create a Node.js or Python service in `/backend` to handle real hardware communication.
+2. **WebSocket Integration:** Connect the Frontend to the Backend for real-time sensor data.
+3. **Visual Polish:** Add `framer-motion` for screen transitions.
+4. **Hardware:** Interface with GPIO (Raspberry Pi) or CAN Bus (OBD2).
+
+---
+Last Updated: May 25, 2026
+Mode: Auto-Edit Complete
+Current Status: Frontend Shell 100% Finished.

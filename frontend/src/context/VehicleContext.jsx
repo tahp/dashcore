@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useAppState } from './StateContext';
+import { useSettings } from './SettingsContext';
 
 const VehicleContext = createContext();
 
 export const VehicleProvider = ({ children }) => {
   const { setPriorityState, systemState } = useAppState();
-  
+  const { settings } = useSettings();
+
   const [data, setData] = useState({
     voltage: 13.8,
     coolantTemp: 90,
@@ -15,7 +17,6 @@ export const VehicleProvider = ({ children }) => {
     isEngineRunning: true,
   });
 
-  const [simulationActive, setSimulationActive] = useState(true);
   const dataRef = useRef(data);
 
   // Sync ref with state for the simulation loop to avoid stale closures
@@ -23,8 +24,9 @@ export const VehicleProvider = ({ children }) => {
     dataRef.current = data;
   }, [data]);
 
+  // Use settings.simulationMode to drive simulation
   useEffect(() => {
-    if (!simulationActive || systemState !== 'READY') return;
+    if (!settings.simulationMode || systemState !== 'READY') return;
 
     const interval = setInterval(() => {
       setData(prev => {
@@ -35,18 +37,28 @@ export const VehicleProvider = ({ children }) => {
         if (newData.voltage < 12.0) newData.voltage = 13.5;
         if (newData.voltage > 15.0) newData.voltage = 14.0;
 
-        // 2. Simulate RPM (Idle around 800-900)
-        newData.rpm = Math.floor(800 + Math.random() * 100);
+        // 2. Simulate RPM (Idle around 800-900, occasional rev)
+        const rpmDelta = (Math.random() - 0.5) * 50;
+        newData.rpm = Math.max(650, Math.min(1200, Math.floor(prev.rpm + rpmDelta)));
 
-        // 3. Simulate Temperature (Slow rise/fall)
-        newData.coolantTemp = parseFloat((prev.coolantTemp + (Math.random() - 0.4) * 0.2).toFixed(1));
+        // 3. Simulate Temperature (Slow rise/fall toward operating temp ~90C)
+        const tempTarget = 90;
+        const tempDrift = (tempTarget - prev.coolantTemp) * 0.02 + (Math.random() - 0.5) * 0.3;
+        newData.coolantTemp = parseFloat((prev.coolantTemp + tempDrift).toFixed(1));
+
+        // 4. Simulate Speed (gentle fluctuation around current speed)
+        const speedDelta = (Math.random() - 0.5) * 3;
+        newData.speed = Math.max(0, Math.min(120, Math.round(prev.speed + speedDelta)));
+
+        // 5. Simulate Fuel consumption (very slow drain)
+        newData.fuelLevel = parseFloat(Math.max(0, prev.fuelLevel - Math.random() * 0.01).toFixed(2));
 
         return newData;
       });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [simulationActive, systemState]);
+  }, [settings.simulationMode, systemState]);
 
   // Logic to trigger system alerts based on vehicle data
   useEffect(() => {
@@ -90,7 +102,7 @@ export const VehicleProvider = ({ children }) => {
   };
 
   return (
-    <VehicleContext.Provider value={{ data, triggerScenario, simulationActive, setSimulationActive }}>
+    <VehicleContext.Provider value={{ data, triggerScenario, simulationActive: settings.simulationMode }}>
       {children}
     </VehicleContext.Provider>
   );

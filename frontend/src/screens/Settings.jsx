@@ -3,7 +3,20 @@ import { useSettings } from '../context/SettingsContext';
 import { Monitor, Gauge, Volume2, Moon, Database, Info, ChevronRight } from 'lucide-react';
 
 function Settings() {
-  const { settings, updateSetting } = useSettings();
+  const { settings, updateSetting, resetSettings } = useSettings();
+
+  const handleClearData = () => {
+    // Only clear dashcore-specific keys, not all localStorage
+    const dashcoreKeys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('dashcore_') || key === 'dashcore_settings' || key === 'dashcore_media_state')) {
+        dashcoreKeys.push(key);
+      }
+    }
+    dashcoreKeys.forEach(key => localStorage.removeItem(key));
+    resetSettings();
+  };
 
   const SettingGroup = ({ icon: Icon, title, children }) => (
     <div className="settings-group">
@@ -84,13 +97,13 @@ function Settings() {
             value={settings.simulationMode} 
             onClick={() => updateSetting('simulationMode', !settings.simulationMode)}
           />
-          <SettingRow label="Clear Local Storage" onClick={() => localStorage.clear()} />
+          <SettingRow label="Reset App Data" onClick={handleClearData} />
         </SettingGroup>
 
         <SettingGroup icon={Info} title="About">
           <div className="settings-row-static version">
             <span className="row-label">Dashcore OS</span>
-            <span className="select-value">v0.1.0-alpha</span>
+            <span className="select-value">v0.2.0-alpha</span>
           </div>
         </SettingGroup>
 

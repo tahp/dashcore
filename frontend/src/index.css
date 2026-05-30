@@ -1111,3 +1111,47 @@ body {
 .version .select-value {
   color: #666;
 }
+
+/* Vehicle Header */
+.vehicle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.vehicle-header h2 {
+  font-size: 24px;
+  font-weight: 500;
+  color: #eee;
+}
+
+.engine-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #888;
+  font-weight: 500;
+}
+
+.sim-badge {
+  background: rgba(68, 170, 255, 0.15);
+  color: #44aaff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(68, 170, 255, 0.3);
+}
+
+/* Gauge status colors */
+.gauge-card.warning {
+  border-color: rgba(255, 200, 0, 0.3);
+}
+
+.gauge-card.danger {
+  border-color: rgba(255, 68, 68, 0.4);
+  background: rgba(255, 0, 0, 0.03);
+}

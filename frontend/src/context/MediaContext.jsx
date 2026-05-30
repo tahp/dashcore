@@ -1,13 +1,16 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 const MediaContext = createContext();
 
 const INITIAL_PLAYLIST = [];
 const MEDIA_STATE_KEY = 'dashcore_media_state';
+const MAX_STORAGE_SIZE = 4 * 1024 * 1024; // 4MB safety limit for localStorage
 
 const sanitizePlaylistForStorage = (playlist) => playlist.map((track) => ({
   ...track,
-  src: track.src,
+  // Only persist src if it's reasonably small (object URLs or short data URLs)
+  // Large data URLs (>1MB) are excluded to prevent localStorage overflow
+  src: track.src && track.src.length < MAX_STORAGE_SIZE ? track.src : '',
 }));
 
 const loadSavedMediaState = () => {
@@ -28,9 +31,10 @@ export const MediaProvider = ({ children }) => {
 
   const [playlist, setPlaylist] = useState(() => savedState?.playlist ?? INITIAL_PLAYLIST);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(() => savedState?.currentTrackIndex ?? 0);
-  const [isPlaying, setIsPlaying] = useState(() => savedState?.isPlaying ?? false);
+  const [isPlaying, setIsPlaying] = useState(false); // Never auto-play on load
   const [currentTime, setCurrentTime] = useState(() => savedState?.currentTime ?? 0);
   const audioRef = useRef(null);
+  const saveTimerRef = useRef(null);
 
   const currentTrack = useMemo(() => {
     const track = playlist[currentTrackIndex];
@@ -95,6 +99,7 @@ export const MediaProvider = ({ children }) => {
     };
     const handleError = () => {
       console.error('Audio playback error', audio.error);
+      setIsPlaying(false);
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -132,22 +137,46 @@ export const MediaProvider = ({ children }) => {
     }
   }, [isPlaying, currentTrack?.src]);
 
+  // Debounced persistence to avoid excessive localStorage writes on every timeupdate
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    window.localStorage.setItem(MEDIA_STATE_KEY, JSON.stringify({
-      playlist: sanitizePlaylistForStorage(playlist),
-      currentTrackIndex,
-      currentTime,
-      isPlaying,
-    }));
-  }, [playlist, currentTrackIndex, currentTime, isPlaying]);
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
 
-  const resetSavedResumeTimes = () => {
+    saveTimerRef.current = setTimeout(() => {
+      try {
+        const stateToSave = JSON.stringify({
+          playlist: sanitizePlaylistForStorage(playlist),
+          currentTrackIndex,
+          currentTime,
+          isPlaying: false, // Never persist playing state
+        });
+
+        // Guard against exceeding localStorage quota
+        if (stateToSave.length < MAX_STORAGE_SIZE) {
+          window.localStorage.setItem(MEDIA_STATE_KEY, stateToSave);
+        } else {
+          console.warn('Media state too large to persist, skipping save');
+        }
+      } catch (error) {
+        console.error('Failed to persist media state', error);
+      }
+    }, 2000); // Save at most every 2 seconds
+
+    return () => {
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, [playlist, currentTrackIndex, currentTime]);
+
+  const resetSavedResumeTimes = useCallback(() => {
     setPlaylist((prev) => prev.map((track) => ({ ...track, resumeTime: 0 })));
-  };
+  }, []);
 
-  const addTrackToPlaylist = (file) => {
+  const addTrackToPlaylist = useCallback((file) => {
     const newTrack = {
       id: Date.now(),
       title: file.name.replace(/\.[^/.]+$/, ''),
@@ -159,7 +188,7 @@ export const MediaProvider = ({ children }) => {
       resumeTime: 0,
     };
 
-    setPlaylist((prev) => [newTrack, ...prev.map((track) => ({ ...track, resumeTime: 0 }))]);
+    setPlaylist((prev) => [newTrack, ...prev]);
     setCurrentTrackIndex(0);
     setCurrentTime(0);
     setIsPlaying(true);
@@ -169,16 +198,15 @@ export const MediaProvider = ({ children }) => {
       const dataUrl = reader.result;
       setPlaylist((prev) => prev.map((track) => track.id === newTrack.id ? { ...track, src: dataUrl } : track));
     };
+    reader.onerror = () => {
+      console.error('Failed to read audio file');
+    };
     reader.readAsDataURL(file);
-  };
+  }, []);
 
-  const removeTrackFromPlaylist = (trackId) => {
-    const trackToRemove = playlist.find((track) => track.id === trackId);
-    const removeIndex = playlist.findIndex((track) => track.id === trackId);
-    const isRemovingCurrentTrack = removeIndex === currentTrackIndex;
-    const wasPlaying = isPlaying;
-
+  const removeTrackFromPlaylist = useCallback((trackId) => {
     setPlaylist((prev) => {
+      const removeIndex = prev.findIndex((track) => track.id === trackId);
       const updatedPlaylist = prev.filter((track) => track.id !== trackId);
 
       if (updatedPlaylist.length === 0) {
@@ -188,27 +216,28 @@ export const MediaProvider = ({ children }) => {
         return updatedPlaylist;
       }
 
-      if (isRemovingCurrentTrack) {
+      if (removeIndex === currentTrackIndex) {
         const nextIndex = removeIndex >= updatedPlaylist.length ? updatedPlaylist.length - 1 : removeIndex;
         setCurrentTrackIndex(nextIndex);
         setCurrentTime(0);
-        setIsPlaying(wasPlaying);
+      } else if (removeIndex < currentTrackIndex) {
+        setCurrentTrackIndex(prev => prev - 1);
       }
 
       return updatedPlaylist;
     });
-  };
+  }, [currentTrackIndex]);
 
-  const moveTrack = (fromIndex, toIndex) => {
+  const moveTrack = useCallback((fromIndex, toIndex) => {
     if (fromIndex === toIndex) return;
-
-    const activeTrackId = currentTrack?.id;
 
     setPlaylist((prev) => {
       const next = [...prev];
       const [movedTrack] = next.splice(fromIndex, 1);
       next.splice(toIndex, 0, movedTrack);
 
+      // Recalculate current track index
+      const activeTrackId = prev[currentTrackIndex]?.id;
       if (activeTrackId) {
         const nextIndex = next.findIndex((track) => track.id === activeTrackId);
         setCurrentTrackIndex(nextIndex);
@@ -216,46 +245,43 @@ export const MediaProvider = ({ children }) => {
 
       return next;
     });
-  };
+  }, [currentTrackIndex]);
 
-  const startPlaylist = () => {
+  const startPlaylist = useCallback(() => {
     if (playlist.length === 0) return;
     resetSavedResumeTimes();
     setCurrentTrackIndex(0);
     setCurrentTime(0);
     setIsPlaying(true);
-  };
+  }, [playlist.length, resetSavedResumeTimes]);
 
-  const handleTogglePlay = () => setIsPlaying((prev) => !prev);
+  const handleTogglePlay = useCallback(() => setIsPlaying((prev) => !prev), []);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (playlist.length <= 1) return;
-    resetSavedResumeTimes();
     setCurrentTrackIndex((prev) => (prev + 1) % playlist.length);
     setCurrentTime(0);
-  };
+  }, [playlist.length]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (playlist.length <= 1) return;
-    resetSavedResumeTimes();
     setCurrentTrackIndex((prev) => (prev - 1 + playlist.length) % playlist.length);
     setCurrentTime(0);
-  };
+  }, [playlist.length]);
 
-  const playTrack = (trackIndex) => {
+  const playTrack = useCallback((trackIndex) => {
     if (playlist.length === 0) return;
-    resetSavedResumeTimes();
     setCurrentTrackIndex(trackIndex);
     setCurrentTime(0);
     setIsPlaying(true);
-  };
+  }, [playlist.length]);
 
-  const seek = (time) => {
+  const seek = useCallback((time) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
     }
     setCurrentTime(time);
-  };
+  }, []);
 
   return (
     <>

@@ -11,15 +11,15 @@ import { SettingsProvider } from './context/SettingsContext'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <StateProvider>
-      <VehicleProvider>
-        <MediaProvider>
-          <NavigationProvider>
-            <SettingsProvider>
+      <SettingsProvider>
+        <VehicleProvider>
+          <MediaProvider>
+            <NavigationProvider>
               <App />
-            </SettingsProvider>
-          </NavigationProvider>
-        </MediaProvider>
-      </VehicleProvider>
+            </NavigationProvider>
+          </MediaProvider>
+        </VehicleProvider>
+      </SettingsProvider>
     </StateProvider>
   </StrictMode>,
 )

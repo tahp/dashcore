@@ -1,0 +1,18 @@
+[Unit]
+Description=Dashcore Kiosk
+Wants=network.target
+After=network.target
+
+[Service]
+User=pugs
+Group=pugs
+Type=simple
+Environment=HOME=/home/pugs
+ExecStartPre=/bin/sleep 2
+ExecStart=/usr/bin/startx /home/pugs/dashcore/boot/kiosk-start.sh -- -nocursor
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+

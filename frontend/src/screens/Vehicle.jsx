@@ -1,7 +1,19 @@
-import React from 'react';
 import { useVehicle } from '../context/VehicleContext';
 import { useSettings } from '../context/SettingsContext';
 import { Activity, Thermometer, Zap, Gauge, Fuel, Power } from 'lucide-react';
+
+const GaugeCard = ({ icon: Icon, label, value, unit, color }) => (
+  <div className="gauge-card">
+    <div className="gauge-header">
+      <Icon size={20} style={{ color }} />
+      <span>{label}</span>
+    </div>
+    <div className="gauge-value">
+      {value}
+      <span className="unit">{unit}</span>
+    </div>
+  </div>
+);
 
 function Vehicle() {
   const { data, triggerScenario, simulationActive } = useVehicle();
@@ -11,19 +23,6 @@ function Vehicle() {
   const formatTemp = (c) => isMetric ? c : parseFloat((c * 9/5 + 32).toFixed(1));
   const displaySpeed = isMetric ? data.speed : Math.round(data.speed * 0.621371);
   const speedUnit = isMetric ? 'km/h' : 'mph';
-
-  const GaugeCard = ({ icon: Icon, label, value, unit, color }) => (
-    <div className="gauge-card">
-      <div className="gauge-header">
-        <Icon size={20} style={{ color }} />
-        <span>{label}</span>
-      </div>
-      <div className="gauge-value">
-        {value}
-        <span className="unit">{unit}</span>
-      </div>
-    </div>
-  );
 
   return (
     <div className="vehicle-screen">

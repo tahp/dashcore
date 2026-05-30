@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
+
 import { useAppState } from './StateContext';
 import { useSettings } from './SettingsContext';
 

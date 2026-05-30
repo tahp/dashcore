@@ -1,9 +1,42 @@
-import React from 'react';
+import { useState } from 'react';
 import { useSettings } from '../context/SettingsContext';
-import { Monitor, Gauge, Volume2, Moon, Database, Info, ChevronRight } from 'lucide-react';
+import { useMedia } from '../context/MediaContext';
+import { Monitor, Gauge, Volume2, Database, Info, ChevronRight, Music } from 'lucide-react';
+import MediaImportModal from '../components/MediaImportModal';
+
+const SettingGroup = ({ icon: Icon, title, children }) => (
+  <div className="settings-group">
+    <div className="group-header">
+      <Icon size={20} className="icon-accent" />
+      <span>{title}</span>
+    </div>
+    <div className="group-content">
+      {children}
+    </div>
+  </div>
+);
+
+const SettingRow = ({ label, value, onClick, type = 'action' }) => (
+  <div className="settings-row" onClick={onClick}>
+    <span className="row-label">{label}</span>
+    <div className="row-control">
+      {type === 'toggle' ? (
+        <div className={`toggle-switch ${value ? 'on' : 'off'}`}>
+          <div className="toggle-handle"></div>
+        </div>
+      ) : type === 'select' ? (
+        <span className="select-value">{value}</span>
+      ) : (
+        <ChevronRight size={20} className="icon-dim" />
+      )}
+    </div>
+  </div>
+);
 
 function Settings() {
   const { settings, updateSetting, resetSettings } = useSettings();
+  const { clearLibrary } = useMedia();
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const handleClearData = () => {
     // Only clear dashcore-specific keys, not all localStorage
@@ -15,42 +48,31 @@ function Settings() {
       }
     }
     dashcoreKeys.forEach(key => localStorage.removeItem(key));
+    clearLibrary();
     resetSettings();
   };
 
-  const SettingGroup = ({ icon: Icon, title, children }) => (
-    <div className="settings-group">
-      <div className="group-header">
-        <Icon size={20} className="icon-accent" />
-        <span>{title}</span>
-      </div>
-      <div className="group-content">
-        {children}
-      </div>
-    </div>
-  );
-
-  const SettingRow = ({ label, value, onClick, type = 'action' }) => (
-    <div className="settings-row" onClick={onClick}>
-      <span className="row-label">{label}</span>
-      <div className="row-control">
-        {type === 'toggle' ? (
-          <div className={`toggle-switch ${value ? 'on' : 'off'}`}>
-            <div className="toggle-handle"></div>
-          </div>
-        ) : type === 'select' ? (
-          <span className="select-value">{value}</span>
-        ) : (
-          <ChevronRight size={20} className="icon-dim" />
-        )}
-      </div>
-    </div>
-  );
+  const handleClearLibrary = () => {
+    if (window.confirm('Are you sure you want to clear your entire media library?')) {
+      clearLibrary();
+    }
+  };
 
   return (
     <div className="settings-screen">
+      <MediaImportModal 
+        isOpen={isImportModalOpen} 
+        onClose={() => setIsImportModalOpen(false)} 
+      />
+
       <div className="settings-container">
         
+        <SettingGroup icon={Music} title="Media Library">
+          <SettingRow label="Scan Device" onClick={() => setIsImportModalOpen(true)} />
+          <SettingRow label="Refresh Library" onClick={() => setIsImportModalOpen(true)} />
+          <SettingRow label="Clear Library" onClick={handleClearLibrary} />
+        </SettingGroup>
+
         <SettingGroup icon={Monitor} title="Display">
           <div className="settings-row-static">
             <span className="row-label">Brightness</span>

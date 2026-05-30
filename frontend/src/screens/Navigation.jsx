@@ -1,4 +1,3 @@
-import React from 'react';
 import { useNavigation } from '../context/NavigationContext';
 import { Search, MapPin, Navigation as NavIcon, X, ArrowUpRight, Clock, Map as MapIcon } from 'lucide-react';
 

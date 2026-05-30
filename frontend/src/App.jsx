@@ -12,7 +12,7 @@ import Vehicle from './screens/Vehicle'
 import Navigation from './screens/Navigation'
 
 function App() {
-  const { activeDisplay, setSystemState, setPriorityState, visibleOverlays, activeOverlays } = useAppState()
+  const { activeDisplay, setSystemState, setPriorityState, visibleOverlays } = useAppState()
 
   const [bootFading, setBootFading] = useState(false)
 

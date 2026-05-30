@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import { useState } from 'react';
 import { useMedia } from '../context/MediaContext';
 import { Play, Pause, SkipBack, SkipForward, ListMusic, Upload, Trash2 } from 'lucide-react';
+import MediaImportModal from '../components/MediaImportModal';
 
 function Media() {
   const { 
@@ -11,14 +12,14 @@ function Media() {
     handleNext, 
     handlePrev,
     playlist,
-    addTrackToPlaylist,
     removeTrackFromPlaylist,
     startPlaylist,
     playTrack,
     moveTrack,
     seek
   } = useMedia();
-  const fileInputRef = useRef(null);
+  
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -26,28 +27,13 @@ function Media() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleUploadClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      addTrackToPlaylist(file);
-    }
-    event.target.value = '';
-  };
-
   const canSkip = playlist.length > 1;
 
   return (
     <div className="media-screen">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="audio/*"
-        onChange={handleFileChange}
-        style={{ display: 'none' }}
+      <MediaImportModal 
+        isOpen={isImportModalOpen} 
+        onClose={() => setIsImportModalOpen(false)} 
       />
 
       <div className="media-layout">
@@ -126,7 +112,7 @@ function Media() {
               <button className="btn-control-secondary" onClick={startPlaylist}>
                 Start playlist
               </button>
-              <button className="btn-control-secondary" onClick={handleUploadClick}>
+              <button className="btn-control-secondary" onClick={() => setIsImportModalOpen(true)}>
                 <Upload size={18} />
               </button>
             </div>

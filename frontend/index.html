@@ -4,10 +4,94 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <meta name="theme-color" content="#000000" />
+    <title>Dashcore</title>
+    <style>
+      /* Pre-React boot splash - visible immediately while JS bundle loads */
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+      }
+      #pre-boot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 32px;
+        z-index: 99999;
+        transition: opacity 0.4s ease-out;
+      }
+      #pre-boot.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #pre-boot img {
+        width: 60%;
+        max-width: 540px;
+        height: auto;
+        animation: pre-pulse 2.5s infinite ease-in-out;
+      }
+      #pre-boot-loader {
+        width: 100px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+      }
+      #pre-boot-loader::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -40%;
+        width: 40%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, #44aaff, transparent);
+        border-radius: 2px;
+        animation: pre-slide 1.8s infinite ease-in-out;
+      }
+      @keyframes pre-pulse {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
+      }
+      @keyframes pre-slide {
+        0% { left: -40%; }
+        100% { left: 100%; }
+      }
+    </style>
   </head>
   <body>
+    <!-- Pre-React boot splash: identical to the app boot screen and Plymouth theme -->
+    <div id="pre-boot">
+      <img src="/splash.png" alt="Dashcore" />
+      <div id="pre-boot-loader"></div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Remove pre-boot splash once React has mounted
+      const observer = new MutationObserver(() => {
+        const root = document.getElementById('root');
+        if (root && root.children.length > 0) {
+          const preBoot = document.getElementById('pre-boot');
+          if (preBoot) {
+            preBoot.classList.add('hidden');
+            setTimeout(() => preBoot.remove(), 500);
+          }
+          observer.disconnect();
+        }
+      });
+      observer.observe(document.getElementById('root'), { childList: true });
+    </script>
   </body>
 </html>

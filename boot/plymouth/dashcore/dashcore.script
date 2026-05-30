@@ -1,0 +1,63 @@
+# Dashcore Plymouth Boot Theme
+# Displays the Dashcore logo centered on a black background
+# with a subtle loading indicator beneath it.
+
+# Set black background
+Window.SetBackgroundTopColor(0, 0, 0);
+Window.SetBackgroundBottomColor(0, 0, 0);
+
+# Load the splash image
+logo.image = Image("splash-1024x600.png");
+logo.sprite = Sprite(logo.image);
+
+# Center the logo on screen
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+logo_width = logo.image.GetWidth();
+logo_height = logo.image.GetHeight();
+
+# Scale to fit if screen is different from 1024x600
+scale_x = screen_width / logo_width;
+scale_y = screen_height / logo_height;
+scale = Math.Min(scale_x, scale_y);
+
+if (scale < 1.0) {
+    logo.sprite.SetImage(logo.image.Scale(logo_width * scale, logo_height * scale));
+    logo_width = logo_width * scale;
+    logo_height = logo_height * scale;
+}
+
+logo.sprite.SetX(screen_width / 2 - logo_width / 2);
+logo.sprite.SetY(screen_height / 2 - logo_height / 2);
+logo.sprite.SetZ(10);
+
+# Simple progress indicator - a small bar below the logo
+progress_bar.original_image = Image("progress-bar.png");
+progress_bar.sprite = Sprite();
+progress_bar.sprite.SetPosition(screen_width / 2 - 50, screen_height * 0.82, 11);
+
+fun refresh_callback() {
+    # Keep logo visible - nothing to animate per-frame
+    logo.sprite.SetOpacity(1.0);
+}
+
+# Progress callback
+fun boot_progress_callback(duration, progress) {
+    if (progress_bar.original_image) {
+        progress_bar.sprite.SetImage(progress_bar.original_image.Scale(progress * 100, 3));
+    }
+}
+
+# Hide messages and password prompts visually
+fun message_callback(text) {
+    # Suppress boot messages
+}
+
+fun display_password_callback(prompt, bullets) {
+    # Not needed for kiosk mode
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);
+Plymouth.SetBootProgressFunction(boot_progress_callback);
+Plymouth.SetMessageFunction(message_callback);
+Plymouth.SetDisplayPasswordFunction(display_password_callback);

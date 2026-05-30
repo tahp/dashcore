@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Dashcore
+Description=Dashcore car dashboard boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/dashcore
+ScriptFile=/usr/share/plymouth/themes/dashcore/dashcore.script

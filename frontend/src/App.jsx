@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppState } from './context/StateContext'
+import dashcoreLogo from './assets/branding/dashcore-logo.png'
 
 import StatusBar from './components/StatusBar'
 import Dock from './components/Dock'
@@ -13,11 +14,19 @@ import Navigation from './screens/Navigation'
 function App() {
   const { activeDisplay, setSystemState, setPriorityState, visibleOverlays, activeOverlays } = useAppState()
 
+  const [bootFading, setBootFading] = useState(false)
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSystemState('READY')
-    }, 2000)
-    return () => clearTimeout(timer)
+    // Wait for app to be fully ready, then fade out boot screen
+    const readyTimer = setTimeout(() => {
+      setBootFading(true)
+      // After fade animation completes, switch to READY state
+      const fadeTimer = setTimeout(() => {
+        setSystemState('READY')
+      }, 600) // Match CSS transition duration
+      return () => clearTimeout(fadeTimer)
+    }, 1500)
+    return () => clearTimeout(readyTimer)
   }, [setSystemState])
 
   const handleDismissPriority = (state) => {
@@ -30,9 +39,11 @@ function App() {
     if (type === 'SYSTEM') {
       if (state === 'BOOT') {
         return (
-          <div className="boot-screen">
-            <h1>DASHCORE</h1>
-            <div className="loader"></div>
+          <div className={`boot-screen ${bootFading ? 'fade-out' : ''}`}>
+            <img src={dashcoreLogo} alt="Dashcore" className="boot-logo" />
+            <div className="boot-loader">
+              <div className="boot-loader-bar"></div>
+            </div>
           </div>
         )
       }

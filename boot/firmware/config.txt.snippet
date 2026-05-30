@@ -1,0 +1,23 @@
+# ============================================================
+# DASHCORE BOOT SPLASH CONFIGURATION
+# Append these lines to /boot/firmware/config.txt (or /boot/config.txt on older OS)
+# ============================================================
+
+# Disable the rainbow splash screen
+disable_splash=1
+
+# Show our custom splash image immediately at GPU init
+splash_file=splash.png
+
+# Suppress firmware boot text
+boot_delay=0
+avoid_warnings=1
+
+# Force HDMI output (for 7" display, adjust as needed)
+# hdmi_force_hotplug=1
+# hdmi_group=2
+# hdmi_mode=87
+# hdmi_cvt=1024 600 60 3 0 0 0
+
+# Disable overscan for clean edge-to-edge display
+disable_overscan=1

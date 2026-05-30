@@ -1,0 +1,16 @@
+# ============================================================
+# DASHCORE KERNEL COMMAND LINE
+# Replace or append to /boot/firmware/cmdline.txt (single line, no newlines)
+# These parameters suppress all kernel boot text for a clean splash experience.
+# ============================================================
+# Add these parameters to the existing cmdline.txt line:
+#
+#   quiet splash plymouth.ignore-serial-consoles logo.nologo vt.global_cursor_default=0 loglevel=0 console=tty3
+#
+# - quiet: suppress most kernel messages
+# - splash: enable Plymouth splash screen
+# - plymouth.ignore-serial-consoles: prevent Plymouth from failing on serial
+# - logo.nologo: hide the Raspberry Pi logo in top-left corner
+# - vt.global_cursor_default=0: hide the blinking cursor
+# - loglevel=0: suppress all kernel log messages on console
+# - console=tty3: redirect any remaining output to tty3 (invisible)

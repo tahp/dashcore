@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useMedia } from '../context/MediaContext';
 import { Play, Pause, SkipBack, SkipForward, ListMusic, Upload, Trash2 } from 'lucide-react';
 import MediaImportModal from '../components/MediaImportModal';
@@ -40,67 +41,110 @@ function Media() {
         
         {/* Left Side: Now Playing Info */}
         <section className="now-playing-section">
-          {currentTrack ? (
-            <>
-              <div className="album-art-large">
-                <img src={currentTrack.cover} alt={currentTrack.title} />
-                <div className="ambient-glow-large" style={{ backgroundImage: `url(${currentTrack.cover})` }}></div>
-              </div>
-              
-              <div className="track-details">
-                <h2>{currentTrack.title}</h2>
-                <p>{currentTrack.artist}</p>
-              </div>
-
-              <div className="playback-container">
-                <input
-                  type="range"
-                  min="0"
-                  max={currentTrack.duration || 0}
-                  step="1"
-                  value={currentTime}
-                  onChange={(event) => seek(Number(event.target.value))}
-                  aria-label="Seek track"
-                  style={{
-                    width: '100%',
-                    accentColor: '#86efac',
-                    marginBottom: '0.75rem'
+          <AnimatePresence mode="wait">
+            {currentTrack ? (
+              <motion.div 
+                key={currentTrack.id}
+                initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
+                transition={{ duration: 0.5 }}
+                className="now-playing-container"
+                style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}
+              >
+                <motion.div 
+                  className="album-art-large"
+                  animate={{ 
+                    scale: isPlaying ? [1, 1.02, 1] : 1,
+                    rotate: isPlaying ? [0, 1, -1, 0] : 0
                   }}
-                />
-                <div className="time-labels">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(currentTrack.duration || 0)}</span>
+                  transition={{ 
+                    repeat: Infinity, 
+                    duration: 4, 
+                    ease: "easeInOut" 
+                  }}
+                >
+                  <img src={currentTrack.cover} alt={currentTrack.title} />
+                  <div className="ambient-glow-large" style={{ backgroundImage: `url(${currentTrack.cover})` }}></div>
+                </motion.div>
+                
+                <div className="track-details">
+                  <motion.h2
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >{currentTrack.title}</motion.h2>
+                  <motion.p
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >{currentTrack.artist}</motion.p>
                 </div>
 
-                <div className="playback-controls-large">
-                  <button
-                    className="btn-control-secondary"
-                    onClick={handlePrev}
-                    disabled={!canSkip}
-                    aria-label="Previous track"
-                  >
-                    <SkipBack size={32} fill="white" />
-                  </button>
-                  <button className="btn-control-primary" onClick={handleTogglePlay}>
-                    {isPlaying ? <Pause size={40} fill="black" /> : <Play size={40} fill="black" />}
-                  </button>
-                  <button
-                    className="btn-control-secondary"
-                    onClick={handleNext}
-                    disabled={!canSkip}
-                    aria-label="Next track"
-                  >
-                    <SkipForward size={32} fill="white" />
-                  </button>
+                <div className="playback-container">
+                  <input
+                    type="range"
+                    min="0"
+                    max={currentTrack.duration || 0}
+                    step="1"
+                    value={currentTime}
+                    onChange={(event) => seek(Number(event.target.value))}
+                    aria-label="Seek track"
+                    style={{
+                      width: '100%',
+                      accentColor: '#86efac',
+                      marginBottom: '0.75rem'
+                    }}
+                  />
+                  <div className="time-labels">
+                    <span>{formatTime(currentTime)}</span>
+                    <span>{formatTime(currentTrack.duration || 0)}</span>
+                  </div>
+
+                  <div className="playback-controls-large">
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="btn-control-secondary"
+                      onClick={handlePrev}
+                      disabled={!canSkip}
+                      aria-label="Previous track"
+                    >
+                      <SkipBack size={32} fill="white" />
+                    </motion.button>
+                    <motion.button 
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="btn-control-primary" 
+                      onClick={handleTogglePlay}
+                    >
+                      {isPlaying ? <Pause size={40} fill="black" /> : <Play size={40} fill="black" />}
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      className="btn-control-secondary"
+                      onClick={handleNext}
+                      disabled={!canSkip}
+                      aria-label="Next track"
+                    >
+                      <SkipForward size={32} fill="white" />
+                    </motion.button>
+                  </div>
                 </div>
-              </div>
-            </>
-          ) : (
-            <div className="track-details">
-              <h2>No audio loaded</h2>
-              <p>Upload a file to start playback.</p>
-            </div>
-          )}
+              </motion.div>
+            ) : (
+              <motion.div 
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="track-details"
+              >
+                <h2>No audio loaded</h2>
+                <p>Upload a file to start playback.</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </section>
 
         {/* Right Side: Playlist / Queue */}
@@ -109,18 +153,41 @@ function Media() {
             <ListMusic size={20} />
             <span>Up Next</span>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
-              <button className="btn-control-secondary" onClick={startPlaylist}>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="btn-control-secondary" 
+                onClick={startPlaylist}
+              >
                 Start playlist
-              </button>
-              <button className="btn-control-secondary" onClick={() => setIsImportModalOpen(true)}>
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="btn-control-secondary" 
+                onClick={() => setIsImportModalOpen(true)}
+              >
                 <Upload size={18} />
-              </button>
+              </motion.button>
             </div>
           </div>
-          <div className="playlist-items">
+          <motion.div 
+            className="playlist-items"
+            initial="initial"
+            animate="animate"
+            variants={{
+              animate: {
+                transition: { staggerChildren: 0.05 }
+              }
+            }}
+          >
             {playlist.map((track, index) => (
-              <div
+              <motion.div
                 key={track.id}
+                variants={{
+                  initial: { opacity: 0, x: 20 },
+                  animate: { opacity: 1, x: 0 }
+                }}
                 className={`playlist-item ${currentTrack?.id === track.id ? 'active' : ''}`}
                 draggable
                 onDragStart={(event) => {
@@ -141,6 +208,7 @@ function Media() {
                 }}
                 onClick={() => playTrack(index)}
                 style={{ cursor: 'grab' }}
+                whileHover={{ backgroundColor: 'rgba(255,255,255,0.05)', x: 5 }}
               >
                 <img src={track.cover} alt={track.title} />
                 <div className="item-info">
@@ -149,7 +217,9 @@ function Media() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
                   <span className="item-duration">{formatTime(track.duration || 0)}</span>
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.2, color: '#ef4444' }}
+                    whileTap={{ scale: 0.8 }}
                     className="btn-control-secondary"
                     onClick={(event) => {
                       event.stopPropagation();
@@ -158,11 +228,11 @@ function Media() {
                     style={{ padding: '0.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   >
                     <Trash2 size={16} />
-                  </button>
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
 
       </div>

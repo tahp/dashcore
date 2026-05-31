@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAppState } from './context/StateContext'
 import dashcoreLogo from './assets/branding/dashcore-logo.png'
 
@@ -11,6 +12,13 @@ import Media from './screens/Media'
 import Settings from './screens/Settings'
 import Vehicle from './screens/Vehicle'
 import Navigation from './screens/Navigation'
+
+const screenVariants = {
+  initial: { opacity: 0, x: 20 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: -20 },
+  transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] }
+}
 
 function App() {
   const { activeDisplay, setSystemState, setPriorityState, visibleOverlays } = useAppState()
@@ -40,42 +48,67 @@ function App() {
     if (type === 'SYSTEM') {
       if (state === 'BOOT') {
         return (
-          <div className={`boot-screen ${bootFading ? 'fade-out' : ''}`}>
-            <img src={dashcoreLogo} alt="Dashcore" className="boot-logo" />
+          <div key="BOOT" className={`boot-screen ${bootFading ? 'fade-out' : ''}`}>
+            <motion.img 
+              src={dashcoreLogo} 
+              alt="Dashcore" 
+              className="boot-logo"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+            />
             <div className="boot-loader">
-              <div className="boot-loader-bar"></div>
+              <motion.div 
+                className="boot-loader-bar"
+                initial={{ left: '-100%' }}
+                animate={{ left: '100%' }}
+                transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+              ></motion.div>
             </div>
           </div>
         )
       }
-      return <div className="system-screen">{state}</div>
+      return <div key="SYSTEM" className="system-screen">{state}</div>
     }
 
     if (type === 'PRIORITY') {
       return (
-        <div className="priority-screen">
+        <motion.div 
+          key="PRIORITY"
+          className="priority-screen"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+        >
           <div className={`alert-box ${state.toLowerCase()}`} onClick={() => handleDismissPriority(state)}>
             <h2>{state.replace('_', ' ')}</h2>
             <p>Tap to dismiss (Dev Mode)</p>
           </div>
-        </div>
+        </motion.div>
       )
     }
 
     // MAIN UI
-    switch (state) {
-      case 'MEDIA':
-        return <Media />
-      case 'SETTINGS':
-        return <Settings />
-      case 'VEHICLE':
-        return <Vehicle />
-      case 'NAVIGATION':
-        return <Navigation />
-      case 'HOME':
-      default:
-        return <Home />
-    }
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={state}
+          variants={screenVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={screenVariants.transition}
+          className="screen-wrapper"
+          style={{ height: '100%', width: '100%' }}
+        >
+          {state === 'MEDIA' && <Media />}
+          {state === 'SETTINGS' && <Settings />}
+          {state === 'VEHICLE' && <Vehicle />}
+          {state === 'NAVIGATION' && <Navigation />}
+          {state === 'HOME' && <Home />}
+        </motion.div>
+      </AnimatePresence>
+    )
   }
 
   const isSystemState = activeDisplay.type === 'SYSTEM'
@@ -89,11 +122,23 @@ function App() {
         {renderContent()}
         
         {/* Overlays Layer */}
-        {!isSystemState && visibleOverlays.map(overlay => (
-          <div key={overlay} className={`overlay ${overlay.toLowerCase()}`}>
-             <span>{overlay.replace('_', ' ')} Active</span>
+        {!isSystemState && (
+          <div className="overlays-container">
+            <AnimatePresence>
+              {visibleOverlays.map(overlay => (
+                <motion.div 
+                  key={overlay} 
+                  className={`overlay ${overlay.toLowerCase()}`}
+                  initial={{ opacity: 0, x: 50, scale: 0.9 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 50, scale: 0.9 }}
+                >
+                  <span>{overlay.replace('_', ' ')} Active</span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
-        ))}
+        )}
       </main>
 
       {!isSystemState && <Dock />}

@@ -11,6 +11,10 @@ const DEFAULT_SETTINGS = {
   volume: 50,
   autoNightMode: true,
   simulationMode: true,
+  autoScanMedia: true,
+  autoConvertMP4: true,
+  autoImportMedia: true,
+  deleteOriginalMP4: false,
 };
 
 const loadSettings = () => {

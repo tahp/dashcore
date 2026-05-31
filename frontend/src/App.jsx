@@ -4,6 +4,7 @@ import dashcoreLogo from './assets/branding/dashcore-logo.png'
 
 import StatusBar from './components/StatusBar'
 import Dock from './components/Dock'
+import AutoDiscoverMedia from './components/AutoDiscoverMedia'
 
 import Home from './screens/Home'
 import Media from './screens/Media'
@@ -81,6 +82,7 @@ function App() {
 
   return (
     <div className={`app ${isSystemState ? 'system-active' : ''}`}>
+      <AutoDiscoverMedia />
       {!isSystemState && <StatusBar />}
 
       <main className="content">

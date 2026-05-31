@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { getTracks, saveTrack, deleteTrack, clearTracks, saveDirectoryHandle, getDirectoryHandle } from '../utils/db';
+import { getTracks, saveTrack, deleteTrack, clearTracks } from '../utils/db';
 
 const MediaContext = createContext();
 
@@ -225,10 +225,41 @@ export const MediaProvider = ({ children }) => {
     setIsPlaying(true);
   }, []);
 
-  const importTracks = useCallback(async (files, onProgress) => {
+  const importTracks = useCallback(async (filesOrPaths, onProgress) => {
     let count = 0;
     const importedTracks = [];
-    for (const file of files) {
+    for (const item of filesOrPaths) {
+      let file = item;
+      let sourcePath = null;
+      let fileName = null;
+
+      if (typeof item === 'string') {
+        sourcePath = item;
+        fileName = item.split('/').pop() || item.split('\\').pop();
+      } else {
+        fileName = item.name;
+        sourcePath = item.name; // Use filename as path for manual uploads as a basic dedup
+      }
+
+      // Check for duplicates
+      const isDuplicate = playlist.some(t => t.sourcePath === sourcePath || (t.title === fileName.replace(/\.[^/.]+$/, '')));
+      const isAlreadyImported = importedTracks.some(t => t.sourcePath === sourcePath || (t.title === fileName.replace(/\.[^/.]+$/, '')));
+      if (isDuplicate || isAlreadyImported) {
+        continue;
+      }
+
+      if (typeof item === 'string') {
+        try {
+          const res = await fetch(`/api/media/file?path=${encodeURIComponent(item)}`);
+          if (!res.ok) throw new Error('Network response was not ok');
+          const blob = await res.blob();
+          file = new File([blob], fileName, { type: blob.type || 'audio/mpeg' });
+        } catch (e) {
+          console.error('Failed to fetch file:', item, e);
+          continue;
+        }
+      }
+
       const id = Date.now() + Math.random();
       const url = URL.createObjectURL(file);
       objectUrlsRef.current.set(id, url);
@@ -242,65 +273,82 @@ export const MediaProvider = ({ children }) => {
         cover: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=400&fit=crop',
         src: url,
         resumeTime: 0,
+        sourcePath, // Store for future dedup
       };
 
       await saveTrack(newTrack, file);
       importedTracks.push(newTrack);
       count++;
-      if (onProgress) onProgress(count, files.length);
-    }
-    setPlaylist((prev) => [...importedTracks, ...prev]);
-    return importedTracks;
-  }, []);
-
-  const scanDevice = useCallback(async (useExisting = false) => {
-    if (!window.showDirectoryPicker) {
-      throw new Error('Directory scanning is not supported in this browser environment.');
+      if (onProgress) onProgress(count, filesOrPaths.length);
     }
     
-    try {
-      let dirHandle = useExisting ? await getDirectoryHandle() : null;
-      
-      if (dirHandle) {
-        const permission = await dirHandle.requestPermission({ mode: 'read' });
-        if (permission !== 'granted') {
-          dirHandle = await window.showDirectoryPicker();
-        }
-      } else {
-        dirHandle = await window.showDirectoryPicker();
-      }
+    if (importedTracks.length > 0) {
+      setPlaylist((prev) => [...importedTracks, ...prev]);
+    }
+    return importedTracks;
+  }, [playlist]);
 
-      if (!dirHandle) return null;
-      
-      await saveDirectoryHandle(dirHandle);
-      
-      const files = [];
-      const supportedExtensions = ['.mp3', '.flac', '.wav', '.m4a', '.aac', '.ogg'];
-      
-      async function walk(handle) {
-        for await (const entry of handle.values()) {
-          if (entry.kind === 'file') {
-            const file = await entry.getFile();
-            if (supportedExtensions.some(ext => file.name.toLowerCase().endsWith(ext))) {
-              files.push(file);
-            }
-          } else if (entry.kind === 'directory') {
-            await walk(entry);
-          }
-        }
-      }
-      
-      await walk(dirHandle);
-      return files;
+  const scanDevice = useCallback(async () => {
+    try {
+      const response = await fetch('/api/media/scan');
+      if (!response.ok) throw new Error('Failed to scan device');
+      const data = await response.json();
+      return data; // Returns { audioCount, videoCount, audioFiles, videoFiles }
     } catch (err) {
-      if (err.name === 'AbortError') return null;
+      console.error(err);
       throw err;
     }
   }, []);
 
+  const convertMP4 = useCallback((files, onProgress, onComplete, onError) => {
+    fetch('/api/media/convert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files })
+    }).then(async (response) => {
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let done = false;
+      let buffer = '';
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop(); // Keep the incomplete part
+
+          for (const part of parts) {
+            if (part.startsWith('data: ')) {
+              const dataStr = part.replace('data: ', '');
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.type === 'progress' && onProgress) {
+                  onProgress(data);
+                } else if (data.type === 'success' && onProgress) {
+                  onProgress(data); // Can handle success per file
+                } else if (data.type === 'error' && onError) {
+                  onError(data);
+                } else if (data.type === 'complete' && onComplete) {
+                  onComplete();
+                }
+              } catch (e) {
+                console.error('Failed to parse SSE data', e);
+              }
+            }
+          }
+        }
+      }
+    }).catch(err => {
+      console.error(err);
+      if (onError) onError({ error: err.message });
+    });
+  }, []);
+
   const hasSavedScanLocation = useCallback(async () => {
-    const handle = await getDirectoryHandle();
-    return !!handle;
+    // With the new backend, we no longer need user interaction for a directory handle.
+    return true;
   }, []);
 
   const removeTrackFromPlaylist = useCallback(async (trackId) => {
@@ -373,6 +421,7 @@ export const MediaProvider = ({ children }) => {
         addTrackToPlaylist,
         importTracks,
         scanDevice,
+        convertMP4,
         hasSavedScanLocation,
         removeTrackFromPlaylist,
         clearLibrary,

@@ -68,7 +68,31 @@ function Settings() {
       <div className="settings-container">
         
         <SettingGroup icon={Music} title="Media Library">
-          <SettingRow label="Scan Device" onClick={() => setIsImportModalOpen(true)} />
+          <SettingRow 
+            label="Automatically scan for media" 
+            type="toggle" 
+            value={settings.autoScanMedia} 
+            onClick={() => updateSetting('autoScanMedia', !settings.autoScanMedia)}
+          />
+          <SettingRow 
+            label="Automatically convert MP4 to MP3" 
+            type="toggle" 
+            value={settings.autoConvertMP4} 
+            onClick={() => updateSetting('autoConvertMP4', !settings.autoConvertMP4)}
+          />
+          <SettingRow 
+            label="Automatically import new media" 
+            type="toggle" 
+            value={settings.autoImportMedia} 
+            onClick={() => updateSetting('autoImportMedia', !settings.autoImportMedia)}
+          />
+          <SettingRow 
+            label="Delete MP4 after conversion" 
+            type="toggle" 
+            value={settings.deleteOriginalMP4} 
+            onClick={() => updateSetting('deleteOriginalMP4', !settings.deleteOriginalMP4)}
+          />
+          <SettingRow label="Scan Device Now" onClick={() => setIsImportModalOpen(true)} />
           <SettingRow label="Refresh Library" onClick={() => setIsImportModalOpen(true)} />
           <SettingRow label="Clear Library" onClick={handleClearLibrary} />
         </SettingGroup>
